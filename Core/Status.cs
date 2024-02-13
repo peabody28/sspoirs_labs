@@ -3,6 +3,9 @@
     public enum Status
     {
         Ok,
-        FileNotFound
+        FileSended,
+        Error,
+        FileRecieved,
+        NoContent
     }
 }
