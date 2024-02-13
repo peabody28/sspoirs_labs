@@ -11,17 +11,15 @@ namespace Server.RequestHandlers
             _startTime = DateTime.Now;
         }
 
-        public Packet Handle(Packet packet)
+        public string Handle(string content, out Status status, out string error)
         {
+            error = string.Empty;
+
             var workingTime = DateTime.UtcNow - _startTime;
 
-            var respPacket = new Packet
-            {
-                Status = Status.Ok,
-                Content = workingTime.ToString()
-            };
+            status = Status.Ok;
 
-            return respPacket;
+            return workingTime.ToString();
         }
     }
 }

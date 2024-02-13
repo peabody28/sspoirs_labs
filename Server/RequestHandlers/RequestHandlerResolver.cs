@@ -20,32 +20,18 @@ namespace Server.RequestHandlers
 
         public void Handle(Socket socket)
         {
-            var packet = GetPacket(socket);
+            var stream = new NetworkStream(socket);
 
-            var handler = _requestHandlers[packet.Command];
+            var reqPackets = PacketBuilder.GetPackets(stream);
+            var command = PacketBuilder.GetCommand(reqPackets);
+            var requestContent = PacketBuilder.GetContent(reqPackets);
 
-            var resp = handler.Handle(packet);
+            var handlingResponse = _requestHandlers[command].Handle(requestContent, out var status, out var error);
 
-            SendPacket(socket, resp);
-        }
+            var responsePackets = PacketBuilder.GetPackets(handlingResponse, status, Command.Answer, null);
 
-        public Packet GetPacket(Socket clientSocket)
-        {
-            var stream = new NetworkStream(clientSocket);
-
-            var buffer = new byte[1024];
-            var bytesCount = stream.Read(buffer);
-
-            var packet = Packet.FromBytes(buffer);
-
-            return packet;
-        }
-
-        public void SendPacket(Socket clientSocket, Packet packet)
-        {
-            var stream = new NetworkStream(clientSocket);
-
-            stream.Write(packet.ToBytes());
+            foreach(var packet in responsePackets)
+                stream.Write(packet.ToBytes());
         }
     }
 }

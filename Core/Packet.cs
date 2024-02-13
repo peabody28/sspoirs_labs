@@ -4,6 +4,8 @@ namespace Core
 {
     public class Packet
     {
+        public static readonly int Size = 20 + 16 + 3 + 1;
+        public static readonly int MaxDataSize = 20;
         public Guid UserId { get; set; }
         public Status Status { get; set; }
 
@@ -13,6 +15,8 @@ namespace Core
 
         public string Content { get; set; }
 
+        public bool IsLastPacket { get; set; }
+
         public byte[] ToBytes()
         {
             var bytes = new List<byte>();
@@ -21,7 +25,12 @@ namespace Core
             bytes.Add((byte)Status);
             bytes.Add((byte)Command);
             bytes.Add((byte)Length);
-            bytes.AddRange(Encoding.UTF8.GetBytes(Content));
+            bytes.Add((byte)(IsLastPacket ? 1 : 0));
+
+            var content = new byte[MaxDataSize];
+            Encoding.UTF8.GetBytes(Content).CopyTo(content, 0);
+
+            bytes.AddRange(content);
 
             return bytes.ToArray();
         }
@@ -36,7 +45,8 @@ namespace Core
                 Status = (Status)data[16],
                 Command = (Command)data[17],
                 Length = length,
-                Content = Encoding.UTF8.GetString(data.Skip(19).Take(length).ToArray())
+                IsLastPacket = data[19] == 1,
+                Content = Encoding.UTF8.GetString(data.Skip(20).Take(length).ToArray()),
             };
         }
     }

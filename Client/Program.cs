@@ -1,6 +1,8 @@
 ﻿using Core;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace Client
 {
@@ -8,6 +10,8 @@ namespace Client
     {
         static void Main(string[] args)
         {
+            var userId = Guid.NewGuid();
+
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             var ipAddr = IPAddress.Parse("127.0.0.1");
             IPEndPoint ipEndPoint = new(ipAddr, 8080);
@@ -37,34 +41,24 @@ namespace Client
                     content = Console.ReadLine();
                 }
 
-                var reqPacket = new Packet
-                {
-                    Command = command,
-                    Content = content
-                };
+                var stream = new NetworkStream(socket);
 
-                socket.Send(reqPacket.ToBytes(), SocketFlags.None);
+                var requestPackets = PacketBuilder.GetPackets(content, Status.Ok, command, userId);
 
-                var buffer = new byte[1024];
-                try
+                foreach(var packet in requestPackets)
+                    stream.Write(packet.ToBytes());
+
+                var respPackets = PacketBuilder.GetPackets(stream);
+                var status = PacketBuilder.GetStatus(respPackets);
+                var responseContent = PacketBuilder.GetContent(respPackets);
+
+                if (status.Equals(Status.FileSended))
                 {
-                    socket.Receive(buffer);
+                    File.WriteAllText("D:\\text2.txt", responseContent);
                 }
-                catch(Exception ex)
+                else if(status.Equals(Status.Ok) || status.Equals(Status.Error))
                 {
-                    Console.WriteLine("Data recieving error");
-                    continue;
-                }
-
-                var response = Packet.FromBytes(buffer);
-
-                if(response.Status.Equals(Status.FileSended))
-                {
-                    File.WriteAllText("D:\\text2.txt", response.Content);
-                }
-                else if(response.Status.Equals(Status.Ok) || response.Status.Equals(Status.Error))
-                {
-                    Console.WriteLine(response.Content);
+                    Console.WriteLine(responseContent);
                 }
             }
         }

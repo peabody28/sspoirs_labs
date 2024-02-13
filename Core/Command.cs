@@ -6,6 +6,7 @@
         Echo,
         Time,
         Download,
-        Upload
+        Upload,
+        Answer
     }
 }

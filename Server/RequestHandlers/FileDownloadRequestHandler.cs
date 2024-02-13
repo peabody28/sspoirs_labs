@@ -4,19 +4,25 @@ namespace Server.RequestHandlers
 {
     public class FileDownloadRequestHandler : IRequestHandler
     {
-        public Packet Handle(Packet packet)
+        private Dictionary<Guid, State> _userState;
+
+        public FileDownloadRequestHandler() 
         {
-            var fileName = packet.Content;
+            _userState = new Dictionary<Guid, State>();
+        }
 
-            var isSuccess = TryGetFile(fileName, out var content, out var error);
+        public string Handle(string content, out Status status, out string error)
+        {
+            //if (!_userState.TryGetValue(userId.Value, out var state))
+            //    _userState.Add(userId.Value, new State());
 
-            var respPacket = new Packet
-            {
-                Status = isSuccess ? Status.FileSended : Status.Error,
-                Content = isSuccess ? content : error
-            };
+            var fileName = content;
 
-            return respPacket;
+            var isSuccess = TryGetFile(fileName, out var respContent, out error);
+
+            status = isSuccess ? Status.FileSended : Status.Error;
+
+            return respContent;
         }
 
         private bool TryGetFile(string fileName, out string content, out string error)

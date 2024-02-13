@@ -4,6 +4,6 @@ namespace Server.RequestHandlers
 {
     public interface IRequestHandler
     {
-        Packet Handle(Packet packet);
+        string Handle(string content, out Status status, out string error);
     }
 }

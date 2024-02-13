@@ -4,15 +4,12 @@ namespace Server.RequestHandlers
 {
     public class EchoRequestHandler : IRequestHandler
     {
-        public Packet Handle(Packet packet)
+        public string Handle(string content, out Status status, out string error)
         {
-            var respPacket = new Packet
-            {
-                Status = Status.Ok,
-                Content = packet.Content,
-            };
+            error = string.Empty;
+            status = Status.Ok;
 
-            return respPacket;
+            return content;
         }
     }
 }

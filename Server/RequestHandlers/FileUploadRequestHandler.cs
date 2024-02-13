@@ -4,14 +4,14 @@ namespace Server.RequestHandlers
 {
     internal class FileUploadRequestHandler : IRequestHandler
     {
-        public Packet Handle(Packet packet)
+        public string Handle(string content, out Status status, out string error)
         {
-            File.WriteAllText("D:\\text.txt", packet.Content);
+            error = string.Empty;
+            status = Status.FileRecieved;
 
-            return new Packet
-            {
-                Status = Status.FileRecieved
-            };
+            File.WriteAllText("D:\\text.txt", content);
+
+            return null;
         }
     }
 }
