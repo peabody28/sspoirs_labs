@@ -4,19 +4,9 @@ namespace Server.RequestHandlers
 {
     public class FileDownloadRequestHandler : IRequestHandler
     {
-        private Dictionary<Guid, State> _userState;
-
-        public FileDownloadRequestHandler() 
+        public byte[] Handle(byte[] contentBytes, out Status status, out string error)
         {
-            _userState = new Dictionary<Guid, State>();
-        }
-
-        public string Handle(string content, out Status status, out string error)
-        {
-            //if (!_userState.TryGetValue(userId.Value, out var state))
-            //    _userState.Add(userId.Value, new State());
-
-            var fileName = content;
+            var fileName = StringHelper.FromBytes(contentBytes);
 
             var isSuccess = TryGetFile(fileName, out var respContent, out error);
 
@@ -25,14 +15,14 @@ namespace Server.RequestHandlers
             return respContent;
         }
 
-        private bool TryGetFile(string fileName, out string content, out string error)
+        private bool TryGetFile(string fileName, out byte[] content, out string error)
         {
             error = string.Empty;
-            content = string.Empty;
+            content = default;
 
             try
             {
-                content = File.ReadAllText(fileName);
+                content = File.ReadAllBytes(fileName);
                 return true;
             }
             catch (Exception ex)

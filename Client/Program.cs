@@ -1,8 +1,6 @@
 ﻿using Core;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 namespace Client
 {
@@ -10,7 +8,7 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            var userId = Guid.NewGuid();
+            var userId = Guid.Parse("d7e62873-0c82-4642-a8cd-e65a0dc9f170");
 
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             var ipAddr = IPAddress.Parse("127.0.0.1");
@@ -22,23 +20,23 @@ namespace Client
                 Console.Write("Input Command: ");
                 var command = Enum.Parse<Command>(Console.ReadLine());
 
-                string content = string.Empty;
+                byte[] content = null;
 
                 if (command.Equals(Command.Download))
                 {
                     Console.Write("Input file path: ");
-                    content = Console.ReadLine();
+                    content = StringHelper.ToBytes(Console.ReadLine());
                 }
                 else if (command.Equals(Command.Upload))
                 {
                     Console.Write("Input file for upload: ");
                     var filePath = Console.ReadLine();
-                    content = File.ReadAllText(filePath);
+                    content = File.ReadAllBytes(filePath);
                 }
                 else if (command.Equals(Command.Echo))
                 {
                     Console.Write("Input string: ");
-                    content = Console.ReadLine();
+                    content = StringHelper.ToBytes(Console.ReadLine());
                 }
 
                 var stream = new NetworkStream(socket);
@@ -50,14 +48,15 @@ namespace Client
 
                 var respPackets = PacketBuilder.GetPackets(stream);
                 var status = PacketBuilder.GetStatus(respPackets);
-                var responseContent = PacketBuilder.GetContent(respPackets);
 
                 if (status.Equals(Status.FileSended))
                 {
-                    File.WriteAllText("D:\\text2.txt", responseContent);
+                    var responseContent = PacketBuilder.GetContent(respPackets);
+                    File.WriteAllBytes("D:\\test2.jpg", responseContent);
                 }
                 else if(status.Equals(Status.Ok) || status.Equals(Status.Error))
                 {
+                    var responseContent = PacketBuilder.GetContentAsString(respPackets);
                     Console.WriteLine(responseContent);
                 }
             }

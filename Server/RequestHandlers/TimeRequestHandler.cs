@@ -11,7 +11,7 @@ namespace Server.RequestHandlers
             _startTime = DateTime.Now;
         }
 
-        public string Handle(string content, out Status status, out string error)
+        public byte[] Handle(byte[] contentBytes, out Status status, out string error)
         {
             error = string.Empty;
 
@@ -19,7 +19,7 @@ namespace Server.RequestHandlers
 
             status = Status.Ok;
 
-            return workingTime.ToString();
+            return StringHelper.ToBytes(workingTime.ToString());
         }
     }
 }

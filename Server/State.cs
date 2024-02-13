@@ -2,6 +2,6 @@
 {
     public class State
     {
-        public int BytesSended { get; set; }
+        public int PackagesSended { get; set; }
     }
 }
