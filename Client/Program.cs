@@ -1,4 +1,5 @@
 ﻿using Core;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
@@ -46,18 +47,35 @@ namespace Client
                 foreach(var packet in requestPackets)
                     stream.Write(packet.ToBytes());
 
-                var respPackets = PacketBuilder.GetPackets(stream);
-                var status = PacketBuilder.GetStatus(respPackets);
+                // response
+                var buffer = new byte[Packet.Size];
+                
+                while (true)
+                {
+                    stream.Read(buffer);
 
-                if (status.Equals(Status.FileSended))
-                {
-                    var responseContent = PacketBuilder.GetContent(respPackets);
-                    File.WriteAllBytes("D:\\test2.jpg", responseContent);
-                }
-                else if(status.Equals(Status.Ok) || status.Equals(Status.Error))
-                {
-                    var responseContent = PacketBuilder.GetContentAsString(respPackets);
-                    Console.WriteLine(responseContent);
+                    var packet = Packet.FromBytes(buffer);
+
+                    if (packet.Status.Equals(Status.FileSended))
+                    {
+                        using (var file = new FileStream("D:\\downloaded.jpg.tmp", FileMode.Append))
+                        {
+                            file.Write(packet.Content, 0, packet.Length);
+                        }
+
+                        if (packet.IsLastPacket)
+                        {
+                            File.Move("D:\\downloaded.jpg.tmp", "D:\\downloaded.jpg");
+                        }
+                    }
+                    else if (packet.Status.Equals(Status.Ok) || packet.Status.Equals(Status.Error))
+                    {
+                        var responseContent = PacketBuilder.GetContentAsString(new[] { packet });
+                        Console.WriteLine(responseContent);
+                    }
+
+                    if (packet.IsLastPacket)
+                        break;
                 }
             }
         }
