@@ -12,7 +12,7 @@ namespace Server.RequestHandlers
 
             status = isSuccess ? Status.FileSended : Status.Error;
 
-            return respContent;
+            return isSuccess ? respContent : StringHelper.ToBytes(error);
         }
 
         private bool TryGetFile(string fileName, out byte[] content, out string error)
@@ -27,7 +27,7 @@ namespace Server.RequestHandlers
             }
             catch (Exception ex)
             {
-                error = "An error occured";
+                error = "File not found";
                 return false;
             }
         }

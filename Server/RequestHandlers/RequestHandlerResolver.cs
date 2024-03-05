@@ -24,7 +24,7 @@ namespace Server.RequestHandlers
 
         public void Handle(Socket socket)
         {
-            var stream = new NetworkStream(socket);
+            using var stream = new NetworkStream(socket);
 
             var reqPackets = PacketBuilder.GetPackets(stream);
             var userId = PacketBuilder.GetUserId(reqPackets);

@@ -18,7 +18,10 @@ namespace Client
 
             while(true)
             {
+
+                PrintEnum(typeof(Command));
                 Console.Write("Input Command: ");
+
                 var command = Enum.Parse<Command>(Console.ReadLine());
 
                 byte[] content = null;
@@ -78,6 +81,12 @@ namespace Client
                         break;
                 }
             }
+        }
+        
+        static void PrintEnum(Type enType)
+        {
+            foreach (var item in Enum.GetNames(enType))
+                Console.WriteLine(" - " + item);
         }
     }
 }
