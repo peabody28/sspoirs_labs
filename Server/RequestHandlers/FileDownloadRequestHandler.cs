@@ -4,7 +4,7 @@ namespace Server.RequestHandlers
 {
     public class FileDownloadRequestHandler : IRequestHandler
     {
-        public byte[] Handle(byte[] contentBytes, out Status status, out string error)
+        public byte[] Handle(byte[] contentBytes, State state, out Status status, out string error)
         {
             var fileName = StringHelper.FromBytes(contentBytes);
 

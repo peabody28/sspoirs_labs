@@ -11,7 +11,7 @@ namespace Server.RequestHandlers
             _startTime = DateTime.UtcNow;
         }
 
-        public byte[] Handle(byte[] contentBytes, out Status status, out string error)
+        public byte[] Handle(byte[] contentBytes, State state, out Status status, out string error)
         {
             error = string.Empty;
 

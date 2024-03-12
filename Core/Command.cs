@@ -7,5 +7,6 @@
         Time,
         Download,
         Upload,
+        HealthCheck
     }
 }

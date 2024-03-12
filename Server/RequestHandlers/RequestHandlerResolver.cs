@@ -10,6 +10,8 @@ namespace Server.RequestHandlers
 
         private readonly IDictionary<Command, IRequestHandler> _requestHandlers;
 
+        private object _udpSocketLock = new object();
+
         public RequestHandlerResolver()
         {
             _requestHandlers = new Dictionary<Command, IRequestHandler>
@@ -18,16 +20,17 @@ namespace Server.RequestHandlers
                 { Command.Time, new TimeRequestHandler() },
                 { Command.Upload, new FileUploadRequestHandler() },
                 { Command.Download, new FileDownloadRequestHandler() },
+                { Command.HealthCheck, new HealthCheckRequestHandler() }
             };
 
             _userState = new Dictionary<Guid, State>();
         }
 
-        public void Handle(Socket socket)
+        public void Handle(Socket clientSocket)
         {
-            while (socket.Connected)
+            while (clientSocket.Connected)
             {
-                using var stream = new NetworkStream(socket);
+                using var stream = new NetworkStream(clientSocket);
                 var reqPackets = PacketBuilder.GetPackets(stream);
                 var userId = PacketBuilder.GetUserId(reqPackets);
                 var command = PacketBuilder.GetCommand(reqPackets);
@@ -39,7 +42,7 @@ namespace Server.RequestHandlers
                     _userState.Add(userId, state);
                 }
 
-                var handlingResponse = _requestHandlers[command].Handle(requestContent, out var status, out var error);
+                var handlingResponse = _requestHandlers[command].Handle(requestContent, state, out var status, out var error);
 
                 var responsePackets = PacketBuilder.GetPackets(handlingResponse, status, command, null);
 
@@ -69,7 +72,19 @@ namespace Server.RequestHandlers
             {
                 var buffer = new byte[Packet.Size];
                 EndPoint remoteIp = new IPEndPoint(IPAddress.Any, 0);
-                socket.ReceiveFrom(buffer, ref remoteIp);
+
+                lock(_udpSocketLock)
+                {
+                    try
+                    {
+                        socket.ReceiveTimeout = 10;
+                        socket.ReceiveFrom(buffer, ref remoteIp);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
 
                 var reqPacket = Packet.FromBytes(buffer);
 
@@ -88,27 +103,41 @@ namespace Server.RequestHandlers
                     continue;
 
                 var requestContent = PacketBuilder.GetContent(state.RecievedPackets);
+                state.RecievedPackets = new List<Packet>();
 
-                var handlingResponse = _requestHandlers[state.Command].Handle(requestContent, out var status, out var error);
+                var handlingResponse = _requestHandlers[state.Command].Handle(requestContent, state, out var status, out var error);
 
                 var responsePackets = PacketBuilder.GetPackets(handlingResponse, status, state.Command, null);
 
-                try
+                Task.Run(() =>
                 {
-                    foreach (var packet in responsePackets.Skip(state.PackagesSended))
+                    try
                     {
-                        socket.SendTo(packet.ToBytes(), remoteIp);
-                        Console.WriteLine($"Package {state.PackagesSended} Sended");
-                        state.PackagesSended += 1;
-                        Thread.Sleep(50);
-                    }
+                        foreach (var packet in responsePackets.Skip(state.PackagesSended))
+                        {
+                            lock (_udpSocketLock)
+                            {
+                                socket.SendTo(packet.ToBytes(), remoteIp);
+                            }
+                            Console.WriteLine($"Package {state.PackagesSended} Sended");
+                            state.PackagesSended += 1;
 
-                    _userState.Remove(state.UserId);
-                }
-                catch
-                {
-                    Console.WriteLine("Error when sending response");
-                }
+                            Thread.Sleep(50);
+
+                            if (DateTime.UtcNow - state.LastHandshake > TimeSpan.FromMilliseconds(1000))
+                            {
+                                state.PackagesSended = state.PackagesSendedWhenHandshake - 1;
+                                throw new Exception("User disconnected");
+                            }
+                        }
+
+                        _userState.Remove(state.UserId);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Error when sending response");
+                    }
+                });
             }
         }
     }

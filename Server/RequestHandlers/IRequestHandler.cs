@@ -4,6 +4,6 @@ namespace Server.RequestHandlers
 {
     public interface IRequestHandler
     {
-        byte[] Handle(byte[] content, out Status status, out string error);
+        byte[] Handle(byte[] content, State state, out Status status, out string error);
     }
 }

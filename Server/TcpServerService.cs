@@ -30,10 +30,5 @@ namespace Server
                 Console.WriteLine(ex);
             }
         }
-
-        public void HealthCheck()
-        {
-
-        }
     }
 }

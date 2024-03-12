@@ -4,7 +4,7 @@ namespace Server.RequestHandlers
 {
     internal class FileUploadRequestHandler : IRequestHandler
     {
-        public byte[] Handle(byte[] content, out Status status, out string error)
+        public byte[] Handle(byte[] content, State state, out Status status, out string error)
         {
             error = string.Empty;
             status = Status.FileRecieved;

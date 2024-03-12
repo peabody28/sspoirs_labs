@@ -14,7 +14,6 @@ namespace Server
             _listenSocket = new(ipEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
 
             _listenSocket.Bind(ipEndPoint);
-            //_listenSocket.Listen(100);
         }
 
         public void Start(Action<Socket> action)

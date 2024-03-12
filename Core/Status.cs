@@ -6,6 +6,7 @@
         FileSended,
         Error,
         FileRecieved,
-        NoContent
+        NoContent,
+        HealthCkeckPassed
     }
 }
