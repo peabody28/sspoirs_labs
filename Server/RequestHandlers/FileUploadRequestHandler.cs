@@ -9,9 +9,9 @@ namespace Server.RequestHandlers
             error = string.Empty;
             status = Status.FileRecieved;
 
-            File.WriteAllBytes("D:\\uploadedFile.jpg", content);
+            File.WriteAllBytes("C:\\tmp\\uploadedFile.jpg", content);
 
-            return null;
+            return StringHelper.ToBytes("File uploaded");
         }
     }
 }

@@ -3,15 +3,15 @@ using System.Net.Sockets;
 
 namespace Server
 {
-    internal class ServerService
+    internal class TcpServerService
     {
         private readonly Socket _listenSocket;
 
-        public ServerService(IPAddress ipAddress, int port, SocketType socketType, ProtocolType protocolType)
+        public TcpServerService(IPAddress ipAddress, int port)
         {
             var ipEndPoint = new IPEndPoint(ipAddress, port);
 
-            _listenSocket = new(ipEndPoint.AddressFamily, socketType, protocolType);
+            _listenSocket = new(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             _listenSocket.Bind(ipEndPoint);
             _listenSocket.Listen(100);
@@ -25,10 +25,15 @@ namespace Server
             {
                 action(childSocket);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        public void HealthCheck()
+        {
+
         }
     }
 }

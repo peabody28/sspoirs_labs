@@ -8,7 +8,7 @@ namespace Server.RequestHandlers
 
         public TimeRequestHandler()
         {
-            _startTime = DateTime.Now;
+            _startTime = DateTime.UtcNow;
         }
 
         public byte[] Handle(byte[] contentBytes, out Status status, out string error)

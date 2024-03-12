@@ -7,6 +7,5 @@
         Time,
         Download,
         Upload,
-        Answer
     }
 }

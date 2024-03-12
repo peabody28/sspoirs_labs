@@ -12,7 +12,7 @@
             {
                 var part = content?.Skip(i * Packet.MaxDataSize).Take(Packet.MaxDataSize).ToArray();
 
-                packets.Add(GetPacket(part, status, command, userId));
+                packets.Add(GetPacket(i, part, status, command, userId));
             }
 
             packets.Last().IsLastPacket = true;
@@ -20,11 +20,12 @@
             return packets;
         }
 
-        private static Packet GetPacket(byte[] content, Status status, Command command, Guid? userId = null)
+        private static Packet GetPacket(int id, byte[] content, Status status, Command command, Guid? userId = null)
         {
             return new Packet
             {
                 UserId = userId.HasValue ? userId.Value : Guid.Empty,
+                Id = id,
                 Status = status,
                 Command = command,
                 Content = content ?? new byte[0]
@@ -57,19 +58,14 @@
 
         public static string GetContentAsString(IEnumerable<Packet> packets)
         {
-            var bytes = new List<byte>();
-
-            foreach(var p in packets)
-                bytes.AddRange(p.Content);
-
-            return StringHelper.FromBytes(bytes.ToArray());
+            return StringHelper.FromBytes(GetContent(packets));
         }
 
         public static byte[] GetContent(IEnumerable<Packet> packets)
         {
             var bytes = new List<byte>();
 
-            foreach (var p in packets)
+            foreach (var p in packets.OrderBy(p => p.Id))
                 bytes.AddRange(p.Content);
 
             return bytes.ToArray();
